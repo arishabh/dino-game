@@ -5,12 +5,15 @@ import random
 black = (0,0,0)
 red = (255, 0, 0)
 white = (255, 255, 255)
+grey = (100, 100, 100)
+path = "templates/"
 
 class Dino:
     size = 60
     def __init__(self, y=330):
-        self.IMGS = list(map(lambda x: pygame.transform.scale(x, (self.size, self.size)), [pygame.image.load("run1.png"), pygame.image.load("run2.png")]))#Add 3 dinosor images, 2 legsi and duck 
-        self.IMGS.append(pygame.transform.scale(pygame.image.load("duck.png"), (77, 36)))
+        self.IMGS = list(map(lambda x: pygame.transform.scale(x, (self.size, self.size)), [pygame.image.load(path+"run1.png"), pygame.image.load(path+"run2.png"), pygame.image.load(path+"jump.png")]))
+        #Add 4 dinosor images, 2 legs, jump and duck 
+        self.IMGS.append(pygame.transform.scale(pygame.image.load(path+"duck.png"), (77, 36)))
         self.img = self.IMGS[0]
         self.width = self.img.get_size()[0]
         self.height = self.img.get_size()[1]
@@ -23,10 +26,10 @@ class Dino:
         
     def update(self, duck):
         self.tick += 1
-        if(self.tick%10 == 5): self.img = self.IMGS[1]
-        elif(self.tick%10 == 0): self.img = self.IMGS[0]
-        if(self.get_bottom() < self.ground): self.img = self.IMGS[0]
-        if duck: self.img = self.IMGS[2]
+        if(self.tick%10 == 0): self.img = self.IMGS[0]
+        elif(self.tick%10 == 5): self.img = self.IMGS[1]
+        if(self.get_bottom() < self.ground): self.img = self.IMGS[2]
+        if duck: self.img = self.IMGS[3]
 
         self.width = self.img.get_size()[0]
         self.height = self.img.get_size()[1]
@@ -48,19 +51,26 @@ class Dino:
         return pygame.mask.from_surface(self.img)
 
 class Obsticle:
-    def __init__(self, y=330):
+    def __init__(self, y=330, score=0):
         self.IMGS = []
         for i in range(5):
-            img = pygame.image.load("tree"+str(i+1)+".png")
+            img = pygame.image.load(path+"tree"+str(i+1)+".png")
             if i == 0: img = pygame.transform.scale(img, (25, 50))
             elif i == 1: img = pygame.transform.scale(img, (27, 60))
             elif i == 2: img = pygame.transform.scale(img, (100, 65))
             elif i > 2: img = pygame.transform.scale(img, (65, 65)) 
             self.IMGS.append(img)
+        self.IMGS.append(pygame.image.load(path+"bird.png"))
 
         self.img = random.choice(self.IMGS)
         self.width = self.img.get_size()[0]
-        self.height = self.img.get_size()[1]
+        self.height = self.img.get_size()[1] 
+        if self.IMGS.index(self.img) == 5: 
+            self.height += 20
+            if score > 400:
+                self.height += 20
+            if score > 100:
+                self.height += 40
         self.x = 1200
         self.y = y-self.height
         self.ground = y
@@ -83,12 +93,26 @@ class Obsticle:
 
     def out(self):
         return self.x+self.width < 0
+
+class Ground:
+    def __init__(self, y=400, x=0):
+        self.img = pygame.image.load(path+"back.png")
+        self.width = self.img.get_size()[0]
+        self.height = self.img.get_size()[1]
+        self.x = x
+        self.y = y-self.height
+
+    def update(self):
+        self.x -= 10
+
+    def draw(self, screen):
+        screen.blit(self.img, (self.x, self.y))
         
 def main():
     pygame.init()
 
     size = [1200,400]
-    ground = size[1]-40
+    ground = size[1]-115
     quit = False
     clock_spd = 30
 
@@ -97,6 +121,7 @@ def main():
 
     dino = Dino(ground)
     obs = []
+    gr = [Ground()]
     freq = 0
     start = round(time(), 1)
     jump = False
@@ -104,8 +129,8 @@ def main():
     score = 0
     while not quit:
         if(round(time(), 1)-start > freq):
-            obs.append(Obsticle(ground))
-            freq = round(random.uniform(1.4, 2.6), 1)
+            obs.append(Obsticle(ground, score))
+            freq = round(random.uniform(1.4, 2.4), 1)
             start = round(time(), 1)
 
         rem = []
@@ -118,6 +143,16 @@ def main():
         
         for ob in rem:
             obs.remove(ob)
+
+        rem = []
+        for g in gr:
+            if g.x+g.width == size[0]:
+                gr.append(Ground(x=size[0]))
+            if g.x+g.width <= 0 and g not in rem:
+                rem.append(g)
+
+        for g in rem:
+            gr.remove(g)
 
         clock.tick(clock_spd)
         for event in pygame.event.get():
@@ -138,12 +173,19 @@ def main():
         dino.update(duck)
 
         screen.fill(white)
+        for g in gr:
+            g.update()
+            g.draw(screen)
         for ob in obs:
             ob.update()
             ob.draw(screen)
         dino.draw(screen)
+        font = pygame.font.Font(path+'dpcomic.ttf', 30)
+        mes = font.render(str(int(score)), True, grey)
+        screen.blit(mes, [40, 40])
         pygame.display.update()
-        score += 1
+        score += 0.3
+        if round(score%50) == 0 and score > 200: clock_spd += 2
 
     pygame.quit()
 
