@@ -1,5 +1,5 @@
 import pygame
-from time import time, sleep
+from time import time
 import random
 
 black = (0,0,0)
@@ -11,8 +11,8 @@ path = "templates/"
 class Dino:
     size = 60
     def __init__(self, y=330):
-        self.IMGS = list(map(lambda x: pygame.transform.scale(x, (self.size, self.size)), [pygame.image.load(path+"run1.png"), pygame.image.load(path+"run2.png"), pygame.image.load(path+"jump.png"), pygame.image.load(path+"dead.png")]))
-        #Add 5 dinosor images, 2 legs, jump, dead and duck 
+        self.IMGS = list(map(lambda x: pygame.transform.scale(x, (self.size, self.size)), [pygame.image.load(path+"run1.png"), pygame.image.load(path+"run2.png"), pygame.image.load(path+"jump.png")]))
+        #Add 4 dinosor images, 2 legs, jump and duck 
         self.IMGS.append(pygame.transform.scale(pygame.image.load(path+"duck.png"), (77, 36)))
         self.img = self.IMGS[0]
         self.width = self.img.get_size()[0]
@@ -29,7 +29,7 @@ class Dino:
         if(self.tick%10 == 0): self.img = self.IMGS[0]
         elif(self.tick%10 == 5): self.img = self.IMGS[1]
         if(self.get_bottom() < self.ground): self.img = self.IMGS[2]
-        if duck: self.img = self.IMGS[4]
+        if duck: self.img = self.IMGS[3]
 
         self.width = self.img.get_size()[0]
         self.height = self.img.get_size()[1]
@@ -49,9 +49,6 @@ class Dino:
 
     def get_mask(self):
         return pygame.mask.from_surface(self.img)
-
-    def dead(self):
-        self.img = self.IMGS[3]
 
 class Obsticle:
     def __init__(self, y=330, score=0):
@@ -117,7 +114,6 @@ def main():
     size = [1200,400]
     ground = size[1]-115
     quit = False
-    dead = False
     clock_spd = 30
 
     clock = pygame.time.Clock()
@@ -131,7 +127,6 @@ def main():
     jump = False
     duck = False
     score = 0
-    highscore = 0
     while not quit:
         if(round(time(), 1)-start > freq):
             obs.append(Obsticle(ground, score))
@@ -141,25 +136,8 @@ def main():
         rem = []
         for ob in obs:
             if ob.collided(dino):
-                dead = True
-                dino.dead()
-                dino.draw(screen)
-                font = pygame.font.Font(path+'dpcomic.ttf', 30)
-                mes = font.render("You died, Press SPACE to restart", True, grey)
-                screen.blit(mes, [400, size[1]/2-30])
-                pygame.display.update()
-                sleep(0.2)
-                highscore = max(highscore, int(score))
-                score = 0
-                clock_spd = 30
-                dino = Dino(ground)
-                obs = []
-                gr = [Ground()]
-                freq = 0
-                start = round(time(), 1)
-                jump = False
-                duck = False
-
+                # dino.jump()
+                pass
             if ob.out() and ob not in rem:
                 rem.append(ob)
         
@@ -182,7 +160,6 @@ def main():
                 quit = True
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE or event.key == pygame.K_UP:
-                    if(dead): dead=False
                     jump = True
                 if event.key == pygame.K_DOWN:
                     duck = True
@@ -192,7 +169,6 @@ def main():
                 if event.key == pygame.K_DOWN:
                     duck = False
 
-        if dead: continue
         if jump: dino.jump()
         dino.update(duck)
 
@@ -205,7 +181,7 @@ def main():
             ob.draw(screen)
         dino.draw(screen)
         font = pygame.font.Font(path+'dpcomic.ttf', 30)
-        mes = font.render(str(int(score)) + "  " + str(highscore), True, grey)
+        mes = font.render(str(int(score)), True, grey)
         screen.blit(mes, [40, 40])
         pygame.display.update()
         score += 0.3
