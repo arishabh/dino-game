@@ -155,11 +155,11 @@ def main(genomes, config):
 
         if round(time(), 1) - start >= freq:
             obs.append(Obstacle(ground, score))
-            freq = round(random.uniform(1.4, 2.4), 1)
+            freq = round(random.uniform(1.4, 2.0), 1)
             start = round(time(), 1)
 
         if len(dinos) > 0:
-            if len(obs) > 1 and dinos[0].x > obs[0].x+obs[0].width:
+            if len(obs) > 1 and dinos[0].x > obs[0].x + obs[0].width:
                 obs_ind = 1
         else:
             quit = True
@@ -168,7 +168,11 @@ def main(genomes, config):
             dino.update()
             ge[x].fitness += 0.1
 
-            output = nets[x].activate((dino.y, abs(dino.y - obs[obs_ind].y)))
+            if obs:
+                output = nets[x].activate((dino.y, abs(dino.x - obs[obs_ind].x)))
+
+            else:
+                output = [0]
 
             if output[0] > 0.5:
                 dino.jump()
@@ -217,7 +221,8 @@ def main(genomes, config):
         screen.blit(mes, [40, 40])
         pygame.display.update()
         score += 0.3
-        if round(score % 50) == 0 and score > 200: clock_spd += 2
+        if round(score) % 50 == 0 and score > 200: clock_spd += 2
+        print(clock_spd)
 
     pygame.quit()
 
