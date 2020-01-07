@@ -155,7 +155,7 @@ def main(genomes, config):
 
         if tick >= freq:
             obs.append(Obstacle(ground, score))
-            freq = random.randint(35, 130)
+            freq = random.randint(25, 110)
             tick = 0
 
         if len(dinos) > 0:
