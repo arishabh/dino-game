@@ -81,8 +81,6 @@ class Obstacle:
             self.height += 20
             if score > 400:
                 self.height += 30
-            if score > 1000:
-                self.height += 65
         self.x = 1200
         self.y = y - self.height
         self.ground = y
@@ -139,8 +137,9 @@ def main(genomes, config):
     obs = []
     gr = [Ground()]
     freq = 0
-    start = round(time(), 1)
+    start = 0
     score = 0
+    tick = 0
 
     for _, g in genomes:
         net = neat.nn.FeedForwardNetwork.create(g, config)
@@ -151,12 +150,13 @@ def main(genomes, config):
 
     while not quit:
         clock.tick(clock_spd)
+        tick += 1
         obs_ind = 0
 
-        if round(time(), 1) - start >= freq:
+        if tick >= freq:
             obs.append(Obstacle(ground, score))
-            freq = round(random.uniform(1.4, 2.0), 1)
-            start = round(time(), 1)
+            freq = random.randint(35, 130)
+            tick = 0
 
         if len(dinos) > 0:
             if len(obs) > 1 and dinos[0].x > obs[0].x + obs[0].width:
@@ -222,7 +222,6 @@ def main(genomes, config):
         pygame.display.update()
         score += 0.3
         if round(score) % 50 == 0 and score > 200: clock_spd += 2
-        print(clock_spd)
 
     pygame.quit()
 
